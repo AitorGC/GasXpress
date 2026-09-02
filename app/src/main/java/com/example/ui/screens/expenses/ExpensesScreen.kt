@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,9 +32,9 @@ fun ExpensesScreen(
     onClearPrefilledStation: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val expenses by viewModel.expenses.collectAsState()
-    val vehicles by viewModel.vehicles.collectAsState()
-    val persons by viewModel.persons.collectAsState()
+    val expenses by viewModel.expenses.collectAsStateWithLifecycle()
+    val vehicles by viewModel.vehicles.collectAsStateWithLifecycle()
+    val persons by viewModel.persons.collectAsStateWithLifecycle()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var activeVehicleFilterId by remember { mutableStateOf<Long?>(null) }

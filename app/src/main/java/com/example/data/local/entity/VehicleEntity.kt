@@ -3,7 +3,18 @@ package com.example.data.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "vehicles")
+@Entity(
+    tableName = "vehicles",
+    foreignKeys = [
+        androidx.room.ForeignKey(
+            entity = PersonEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["assignedPersonId"],
+            onDelete = androidx.room.ForeignKey.SET_NULL
+        )
+    ],
+    indices = [androidx.room.Index("assignedPersonId")]
+)
 data class VehicleEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String, // e.g. "Seat León 1.5 TSI"

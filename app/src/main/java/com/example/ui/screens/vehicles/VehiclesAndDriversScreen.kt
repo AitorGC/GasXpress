@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,8 +31,8 @@ fun VehiclesAndDriversScreen(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
-    val vehicles by viewModel.vehicles.collectAsState()
-    val persons by viewModel.persons.collectAsState()
+    val vehicles by viewModel.vehicles.collectAsStateWithLifecycle()
+    val persons by viewModel.persons.collectAsStateWithLifecycle()
 
     var showAddVehicleDialog by remember { mutableStateOf(false) }
     var vehicleToEdit by remember { mutableStateOf<VehicleEntity?>(null) }

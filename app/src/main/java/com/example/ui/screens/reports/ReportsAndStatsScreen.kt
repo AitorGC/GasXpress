@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,9 +38,9 @@ fun ReportsAndStatsScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val expenses by viewModel.expenses.collectAsState()
-    val vehicles by viewModel.vehicles.collectAsState()
-    val persons by viewModel.persons.collectAsState()
+    val expenses by viewModel.expenses.collectAsStateWithLifecycle()
+    val vehicles by viewModel.vehicles.collectAsStateWithLifecycle()
+    val persons by viewModel.persons.collectAsStateWithLifecycle()
 
     val availableMonths = listOf(
         "Septiembre 2026",

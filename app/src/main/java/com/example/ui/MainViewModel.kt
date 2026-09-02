@@ -137,6 +137,63 @@ class MainViewModel(
     private val _isDetectingLocation = MutableStateFlow(false)
     val isDetectingLocation: StateFlow<Boolean> = _isDetectingLocation.asStateFlow()
 
+    private fun String.parseToDouble(): Double? = this.replace(",", ".").toDoubleOrNull()
+
+    val tripCalculationResult: StateFlow<TripCalculationResult> = combine(
+        listOf(
+            _tripDistance, _isRoundTrip, _customConsumption, _tollsCost,
+            _passengersCount, _selectedTripVehicle, _stationsState,
+            _tripPriceMode, favorites, _customFuelPrice, userSettings
+        )
+    ) { _ ->
+        val dist = _tripDistance.value.parseToDouble() ?: 0.0
+        val actualDistance = if (_isRoundTrip.value) dist * 2.0 else dist
+        val consumption = _customConsumption.value.parseToDouble() ?: 6.0
+        val tolls = _tollsCost.value.parseToDouble() ?: 0.0
+        val pass = _passengersCount.value.coerceAtLeast(1)
+
+        val fuelType = _selectedTripVehicle.value?.let { FuelType.fromId(it.fuelType) } ?: userSettings.value.selectedFuelType
+        val avgZonePrice = _stationsState.value.avgPrice ?: fuelType.defaultAvgPrice
+        val minZonePrice = _stationsState.value.minPrice ?: avgZonePrice
+
+        // Find favorite station price
+        val favIds = favorites.value.map { it.stationId }.toSet()
+        val favStationPrice = rawStationsList.filter { favIds.contains(it.id) }
+            .mapNotNull { it.getPriceFor(fuelType) }
+            .minOrNull()
+            ?: favorites.value.firstOrNull()?.lastKnownPrice?.takeIf { it > 0 }
+            ?: avgZonePrice
+
+        val (resolvedPrice, priceSourceName) = when (_tripPriceMode.value) {
+            TripPriceMode.ZONE_AVERAGE -> Pair(avgZonePrice, "Precio medio de la zona")
+            TripPriceMode.FAVORITE_STATION -> Pair(favStationPrice, "Mi gasolinera favorita")
+            TripPriceMode.CHEAPEST_STATION -> Pair(minZonePrice, "Gasolinera más barata")
+            TripPriceMode.CUSTOM -> Pair(_customFuelPrice.value.parseToDouble() ?: avgZonePrice, "Precio personalizado")
+        }
+
+        val litersNeeded = (actualDistance * consumption) / 100.0
+        val fuelCost = litersNeeded * resolvedPrice
+        val totalCost = fuelCost + tolls
+        val costPerPass = totalCost / pass
+        val costPerKm = if (actualDistance > 0) totalCost / actualDistance else 0.0
+
+        TripCalculationResult(
+            totalDistanceKm = actualDistance,
+            litersNeeded = litersNeeded,
+            fuelCost = fuelCost,
+            tollsCost = tolls,
+            totalCost = totalCost,
+            costPerPassenger = costPerPass,
+            costPerKm = costPerKm,
+            priceUsedPerLiter = resolvedPrice,
+            priceSourceName = priceSourceName
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = TripCalculationResult(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, "Calculando...")
+    )
+
     // Generated PDF
     private val _latestGeneratedPdf = MutableStateFlow<File?>(null)
     val latestGeneratedPdf: StateFlow<File?> = _latestGeneratedPdf.asStateFlow()
@@ -400,48 +457,7 @@ class MainViewModel(
     }
 
     fun calculateTrip(): TripCalculationResult {
-        val dist = _tripDistance.value.toDoubleOrNull() ?: 0.0
-        val actualDistance = if (_isRoundTrip.value) dist * 2.0 else dist
-        val consumption = _customConsumption.value.toDoubleOrNull() ?: 6.0
-        val tolls = _tollsCost.value.toDoubleOrNull() ?: 0.0
-        val pass = _passengersCount.value.coerceAtLeast(1)
-
-        val fuelType = _selectedTripVehicle.value?.let { FuelType.fromId(it.fuelType) } ?: userSettings.value.selectedFuelType
-        val avgZonePrice = _stationsState.value.avgPrice ?: fuelType.defaultAvgPrice
-        val minZonePrice = _stationsState.value.minPrice ?: avgZonePrice
-
-        // Find favorite station price
-        val favIds = favorites.value.map { it.stationId }.toSet()
-        val favStationPrice = rawStationsList.filter { favIds.contains(it.id) }
-            .mapNotNull { it.getPriceFor(fuelType) }
-            .minOrNull()
-            ?: favorites.value.firstOrNull()?.lastKnownPrice?.takeIf { it > 0 }
-            ?: avgZonePrice
-
-        val (resolvedPrice, priceSourceName) = when (_tripPriceMode.value) {
-            TripPriceMode.ZONE_AVERAGE -> Pair(avgZonePrice, "Precio medio de la zona")
-            TripPriceMode.FAVORITE_STATION -> Pair(favStationPrice, "Mi gasolinera favorita")
-            TripPriceMode.CHEAPEST_STATION -> Pair(minZonePrice, "Gasolinera más barata")
-            TripPriceMode.CUSTOM -> Pair(_customFuelPrice.value.toDoubleOrNull() ?: avgZonePrice, "Precio personalizado")
-        }
-
-        val litersNeeded = (actualDistance * consumption) / 100.0
-        val fuelCost = litersNeeded * resolvedPrice
-        val totalCost = fuelCost + tolls
-        val costPerPass = totalCost / pass
-        val costPerKm = if (actualDistance > 0) totalCost / actualDistance else 0.0
-
-        return TripCalculationResult(
-            totalDistanceKm = actualDistance,
-            litersNeeded = litersNeeded,
-            fuelCost = fuelCost,
-            tollsCost = tolls,
-            totalCost = totalCost,
-            costPerPassenger = costPerPass,
-            costPerKm = costPerKm,
-            priceUsedPerLiter = resolvedPrice,
-            priceSourceName = priceSourceName
-        )
+        return tripCalculationResult.value
     }
 
     // Vehicle Management

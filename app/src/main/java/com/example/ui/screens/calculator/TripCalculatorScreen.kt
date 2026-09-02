@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,28 +33,21 @@ fun TripCalculatorScreen(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
-    val vehicles by viewModel.vehicles.collectAsState()
-    val tripOrigin by viewModel.tripOrigin.collectAsState()
-    val tripDestination by viewModel.tripDestination.collectAsState()
-    val tripDistance by viewModel.tripDistance.collectAsState()
-    val tripPriceMode by viewModel.tripPriceMode.collectAsState()
-    val selectedVehicle by viewModel.selectedTripVehicle.collectAsState()
-    val customConsumption by viewModel.customConsumption.collectAsState()
-    val customFuelPrice by viewModel.customFuelPrice.collectAsState()
-    val isRoundTrip by viewModel.isRoundTrip.collectAsState()
-    val passengersCount by viewModel.passengersCount.collectAsState()
-    val tollsCost by viewModel.tollsCost.collectAsState()
-    val stationsState by viewModel.stationsState.collectAsState()
-    val userSettings by viewModel.userSettings.collectAsState()
-    val favorites by viewModel.favorites.collectAsState()
-
-    val result = remember(
-        tripOrigin, tripDestination, tripDistance, tripPriceMode,
-        selectedVehicle, customConsumption, customFuelPrice,
-        isRoundTrip, passengersCount, tollsCost, stationsState, favorites
-    ) {
-        viewModel.calculateTrip()
-    }
+    val vehicles by viewModel.vehicles.collectAsStateWithLifecycle()
+    val tripOrigin by viewModel.tripOrigin.collectAsStateWithLifecycle()
+    val tripDestination by viewModel.tripDestination.collectAsStateWithLifecycle()
+    val tripDistance by viewModel.tripDistance.collectAsStateWithLifecycle()
+    val tripPriceMode by viewModel.tripPriceMode.collectAsStateWithLifecycle()
+    val selectedVehicle by viewModel.selectedTripVehicle.collectAsStateWithLifecycle()
+    val customConsumption by viewModel.customConsumption.collectAsStateWithLifecycle()
+    val customFuelPrice by viewModel.customFuelPrice.collectAsStateWithLifecycle()
+    val isRoundTrip by viewModel.isRoundTrip.collectAsStateWithLifecycle()
+    val passengersCount by viewModel.passengersCount.collectAsStateWithLifecycle()
+    val tollsCost by viewModel.tollsCost.collectAsStateWithLifecycle()
+    val stationsState by viewModel.stationsState.collectAsStateWithLifecycle()
+    val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
+    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
+    val result by viewModel.tripCalculationResult.collectAsStateWithLifecycle()
 
     val routePresets = remember(userSettings.selectedProvinceId, userSettings.selectedIslandId) {
         when (userSettings.selectedProvinceId) {

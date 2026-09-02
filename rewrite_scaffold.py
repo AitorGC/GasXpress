@@ -1,96 +1,20 @@
-package com.example.ui.navigation
+import re
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.example.data.model.GasStation
-import com.example.ui.MainViewModel
-import com.example.ui.screens.calculator.TripCalculatorScreen
-import com.example.ui.screens.expenses.ExpensesScreen
-import com.example.ui.screens.onboarding.InitialProvinceOnboardingDialog
-import com.example.ui.screens.reports.ReportsAndStatsScreen
-import com.example.ui.screens.stations.StationsScreen
-import com.example.ui.screens.vehicles.VehiclesAndDriversScreen
-import kotlinx.coroutines.flow.collectLatest
+with open("app/src/main/java/com/example/ui/navigation/MainAppScaffold.kt", "r") as f:
+    content = f.read()
 
-sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
-    data object Stations : Screen("stations", "GASOLINERAS", Icons.Default.LocalGasStation)
-    data object Vehicles : Screen("vehicles", "VEHÍCULOS", Icons.Default.DirectionsCar)
-    data object Expenses : Screen("expenses", "GASTOS", Icons.Default.ReceiptLong)
-    data object Calculator : Screen("calculator", "CALCULADORA", Icons.Default.Calculate)
-    data object Reports : Screen("reports", "INFORMES", Icons.Default.Assessment)
-}
-
-@Composable
-fun MainAppScaffold(viewModel: MainViewModel) {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
-
-    var prefilledStationForExpense by remember { mutableStateOf<GasStation?>(null) }
-
-    // Request notification permission on Android 13+
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { _ -> }
-
-    LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-    }
-
-    // Show price drop notifications or actions via snackbar
-    LaunchedEffect(Unit) {
-        viewModel.notificationMessage.collectLatest { msg ->
-            snackbarHostState.showSnackbar(
-                message = msg,
-                duration = SnackbarDuration.Short
-            )
-        }
-    }
-
-    val screens = listOf(
-        Screen.Stations,
-        Screen.Vehicles,
-        Screen.Expenses,
-        Screen.Calculator,
-        Screen.Reports
+# Add import
+if "import androidx.compose.ui.platform.LocalConfiguration" not in content:
+    content = content.replace(
+        "import androidx.compose.ui.platform.LocalContext",
+        "import androidx.compose.ui.platform.LocalContext\nimport androidx.compose.ui.platform.LocalConfiguration\nimport androidx.compose.foundation.layout.Row\nimport androidx.compose.foundation.layout.RowScope"
     )
 
+# Replace the Scaffold part
+# Look for Scaffold( ... ) { innerPadding -> ... }
+scaffold_pattern = r"    Scaffold\([\s\S]+?    // First time onboarding dialog"
 
+new_scaffold_code = """
     val screenWidth = LocalConfiguration.current.screenWidthDp
     val isTablet = screenWidth >= 600
 
@@ -261,15 +185,11 @@ fun MainAppScaffold(viewModel: MainViewModel) {
         }
     }
 
-    // First time onboarding dialog
-    if (userSettings.isFirstTimeLaunch) {
-        InitialProvinceOnboardingDialog(
-            currentProvinceId = userSettings.selectedProvinceId,
-            currentIslandId = userSettings.selectedIslandId,
-            onConfirm = { provinceId, islandId ->
-                viewModel.setProvince(provinceId, islandId)
-                viewModel.completeOnboarding()
-            }
-        )
-    }
-}
+    // First time onboarding dialog"""
+
+new_content = re.sub(scaffold_pattern, new_scaffold_code, content)
+
+with open("app/src/main/java/com/example/ui/navigation/MainAppScaffold.kt", "w") as f:
+    f.write(new_content)
+
+print("Scaffold replaced!")

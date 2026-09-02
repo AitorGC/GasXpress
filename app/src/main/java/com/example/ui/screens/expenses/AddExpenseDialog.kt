@@ -201,6 +201,10 @@ fun AddExpenseDialog(
                 )
 
                 // 6. Odometer & Full Tank
+                val currentOdometerVal = odometerStr.replace(",", ".").toDoubleOrNull() ?: 0.0
+                val minOdometer = selectedVehicle?.initialOdometerKm ?: 0.0
+                val isOdometerError = currentOdometerVal > 0 && currentOdometerVal < minOdometer
+
                 OutlinedTextField(
                     value = odometerStr,
                     onValueChange = { odometerStr = it },
@@ -208,6 +212,12 @@ fun AddExpenseDialog(
                     trailingIcon = { Text("km ", fontSize = 11.sp, color = Color.Gray) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(12.dp),
+                    isError = isOdometerError,
+                    supportingText = {
+                        if (isOdometerError) {
+                            Text("Debe ser mayor al actual: ${minOdometer}km")
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -235,12 +245,12 @@ fun AddExpenseDialog(
                 onClick = {
                     val v = selectedVehicle
                     val p = selectedPerson
-                    val liters = litersStr.toDoubleOrNull() ?: 0.0
-                    val price = pricePerLiterStr.toDoubleOrNull() ?: 0.0
-                    val total = totalCostStr.toDoubleOrNull() ?: (liters * price)
-                    val km = odometerStr.toDoubleOrNull() ?: 0.0
+                    val liters = litersStr.replace(",", ".").toDoubleOrNull() ?: 0.0
+                    val price = pricePerLiterStr.replace(",", ".").toDoubleOrNull() ?: 0.0
+                    val total = totalCostStr.replace(",", ".").toDoubleOrNull() ?: (liters * price)
+                    val km = odometerStr.replace(",", ".").toDoubleOrNull() ?: 0.0
 
-                    if (v != null && p != null && liters > 0) {
+                    if (v != null && p != null && liters > 0 && price > 0 && total >= 0 && km >= v.initialOdometerKm) {
                         val expense = FuelExpenseEntity(
                             vehicleId = v.id,
                             personId = p.id,
@@ -259,7 +269,10 @@ fun AddExpenseDialog(
                         onDismiss()
                     }
                 },
-                enabled = selectedVehicle != null && selectedPerson != null && (litersStr.toDoubleOrNull() ?: 0.0) > 0
+                enabled = selectedVehicle != null && selectedPerson != null && 
+                          (litersStr.replace(",", ".").toDoubleOrNull() ?: 0.0) > 0 && 
+                          (pricePerLiterStr.replace(",", ".").toDoubleOrNull() ?: 0.0) > 0 &&
+                          (odometerStr.replace(",", ".").toDoubleOrNull() ?: 0.0) >= (selectedVehicle?.initialOdometerKm ?: 0.0)
             ) {
                 Text("Guardar Repostaje")
             }

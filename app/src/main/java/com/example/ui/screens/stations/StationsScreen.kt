@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,9 +41,9 @@ fun StationsScreen(
     onNavigateToAddExpenseWithStation: (GasStation) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val userSettings by viewModel.userSettings.collectAsState()
-    val stationsState by viewModel.stationsState.collectAsState()
-    val selectedStationForDetail by viewModel.selectedStationForDetail.collectAsState()
+    val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
+    val stationsState by viewModel.stationsState.collectAsStateWithLifecycle()
+    val selectedStationForDetail by viewModel.selectedStationForDetail.collectAsStateWithLifecycle()
 
     AnimatedContent(
         targetState = selectedStationForDetail,
@@ -99,8 +100,8 @@ fun StationsListView(
     onSelectStation: (GasStation) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val userSettings by viewModel.userSettings.collectAsState()
-    val stationsState by viewModel.stationsState.collectAsState()
+    val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
+    val stationsState by viewModel.stationsState.collectAsStateWithLifecycle()
 
     var showProvinceSelector by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
