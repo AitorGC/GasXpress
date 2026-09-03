@@ -1,6 +1,6 @@
 <div align="center">
-  <h1>⛽ GasXpress</h1>
-  <p><b>Tu copiloto financiero para la gestión de vehículos y combustible.</b></p>
+  <h1>⛽ AhorraGAS</h1>
+  <p><b>Tu copiloto financiero para la gestión de vehículos y combustible. Gasolineras Baratas y Informes de Gasto.</b></p>
   
   [![Kotlin](https://img.shields.io/badge/Kotlin-blue.svg?logo=kotlin)](#)
   [![Jetpack Compose](https://img.shields.io/badge/Jetpack_Compose-Material_3-4CAF50.svg?logo=android)](#)
@@ -11,13 +11,13 @@
 
 ## 💡 Propósito
 
-**GasXpress** nació con una misión clara: ayudar a los conductores y familias a tomar el control absoluto de sus gastos de movilidad. Ya sea encontrando la estación de servicio más económica en tu zona, calculando el coste exacto de una escapada de fin de semana, o gestionando el consumo individual de los distintos miembros de la familia, GasXpress centraliza todas estas herramientas en una sola aplicación rápida, intuitiva y moderna.
+**AhorraGAS** nació con una misión clara: ayudar a los conductores y familias a tomar el control absoluto de sus gastos de movilidad. Ya sea encontrando la estación de servicio más económica en tu zona, calculando el coste exacto de una escapada de fin de semana, o gestionando el consumo individual de los distintos miembros de la familia, AhorraGAS centraliza todas estas herramientas en una sola aplicación rápida, intuitiva y moderna.
 
 *(Con cobertura para España Peninsular, Canarias, Illes Balears, Ceuta y Melilla).*
 
 ## ✨ Descubre la App
 
-Sin abrumarte con menús infinitos, GasXpress se divide en los módulos justos y necesarios:
+Sin abrumarte con menús infinitos, AhorraGAS se divide en los módulos justos y necesarios:
 
 - **🗺️ Estaciones de Servicio:** Localiza, compara y filtra para encontrar siempre el combustible al mejor precio cerca de ti.
 - **🚗 Vehículos y Familia:** Administra tu garaje. Crea perfiles para los conductores de casa y asígnales sus vehículos habituales.

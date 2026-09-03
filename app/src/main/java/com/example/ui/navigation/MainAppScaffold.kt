@@ -10,6 +10,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -99,10 +100,12 @@ fun MainAppScaffold(viewModel: MainViewModel) {
             NavigationRail(
                 containerColor = MaterialTheme.colorScheme.surface,
                 header = {
-                    Icon(
-                        imageVector = Icons.Default.DirectionsCar,
-                        contentDescription = "App Logo",
-                        modifier = Modifier.padding(vertical = 12.dp)
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.ic_ahorragas_logo),
+                        contentDescription = "AhorraGAS Logo",
+                        modifier = Modifier
+                            .padding(vertical = 12.dp)
+                            .size(36.dp)
                     )
                 }
             ) {

@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "GasXpress"
+rootProject.name = "AhorraGAS"
 
 include(":app")

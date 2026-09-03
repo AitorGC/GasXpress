@@ -2,7 +2,7 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// GasXpress Theme Palette
+// AhorraGAS Theme Palette
 val GasEmerald = Color(0xFF10B981)
 val GasEmeraldDark = Color(0xFF047857)
 val GasEmeraldLight = Color(0xFF34D399)

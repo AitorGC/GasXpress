@@ -503,12 +503,30 @@ fun SettingsSheet(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 15.sp
                     )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
+                    ) {
+                        androidx.compose.foundation.Image(
+                            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.ic_ahorragas_logo),
+                            contentDescription = "AhorraGAS Logo",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "AhorraGAS v1.1.5",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     Text(
-                        text = "GasXpress v1.1.3 • España Peninsular, Canarias, Illes Balears, Ceuta y Melilla\nDesarrollada con 💛 por Aitor Santana",
+                        text = "Gasolineras Baratas y Informes de Gasto\nEspaña Peninsular, Canarias, Illes Balears, Ceuta y Melilla\nDesarrollada con 💛 por Aitor Santana",
                         fontSize = 10.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
