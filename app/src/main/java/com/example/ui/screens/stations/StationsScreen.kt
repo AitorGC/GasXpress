@@ -9,8 +9,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +50,7 @@ fun StationsScreen(
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
     val stationsState by viewModel.stationsState.collectAsStateWithLifecycle()
     val selectedStationForDetail by viewModel.selectedStationForDetail.collectAsStateWithLifecycle()
+    val listState = rememberLazyListState()
 
     AnimatedContent(
         targetState = selectedStationForDetail,
@@ -81,6 +85,7 @@ fun StationsScreen(
         if (station == null) {
             StationsListView(
                 viewModel = viewModel,
+                listState = listState,
                 onSelectStation = { viewModel.selectStationForDetail(it) }
             )
         } else {
@@ -101,10 +106,17 @@ fun StationsScreen(
 fun StationsListView(
     viewModel: MainViewModel,
     onSelectStation: (GasStation) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState()
 ) {
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
     val stationsState by viewModel.stationsState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(userSettings.selectedProvinceId, userSettings.selectedIslandId) {
+        if (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0) {
+            listState.scrollToItem(0)
+        }
+    }
 
     var showProvinceSelector by remember { mutableStateOf(false) }
     var showSettingsSheet by remember { mutableStateOf(false) }
@@ -527,7 +539,9 @@ fun StationsListView(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                if (stationsState.isLoading) {
+                if (stationsState.isLoading && stationsState.stations.isEmpty()) {
+                    AppSplashScreen(displayZoneName = userSettings.displayZoneName)
+                } else if (stationsState.isLoading) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -536,7 +550,7 @@ fun StationsListView(
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Consultando precios en tiempo real de ${userSettings.displayZoneName}...",
+                            text = "Actualizando precios de ${userSettings.displayZoneName}...",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -599,6 +613,7 @@ fun StationsListView(
                     }
                 } else {
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -769,6 +784,117 @@ fun StationCardItem(
                         modifier = Modifier.size(18.dp)
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppSplashScreen(
+    displayZoneName: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Logo centered
+            Image(
+                painter = painterResource(id = R.drawable.ic_ahorragas_logo),
+                contentDescription = "AhorraGAS Logo",
+                modifier = Modifier.size(96.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // App Title
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Ahorra",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFF1E293B),
+                    letterSpacing = (-0.5).sp
+                )
+                Text(
+                    text = "GAS",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFF10B981),
+                    letterSpacing = (-0.5).sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "Gasolineras Baratas y Informes de Gasto",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF64748B),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Loading Progress
+            CircularProgressIndicator(
+                color = Color(0xFF10B981),
+                modifier = Modifier.size(28.dp),
+                strokeWidth = 3.dp
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Cargando estaciones y precios de $displayZoneName...",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF64748B),
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // App Credits
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                Text(
+                    text = "España Peninsular • Canarias • Illes Balears • Ceuta y Melilla",
+                    fontSize = 11.sp,
+                    color = Color(0xFF94A3B8),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Desarrollada con 💛 por Aitor Santana",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF475569),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "AhorraGAS v1.1.5 • Datos Oficiales MITECO",
+                    fontSize = 10.sp,
+                    color = Color(0xFF94A3B8),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 enum class AppThemeMode {
     SYSTEM,
     LIGHT,
-    DARK
+    DARK,
+    AMOLED
 }
 
 data class UserSettings(

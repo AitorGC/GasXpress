@@ -119,18 +119,17 @@ fun InitialProvinceOnboardingDialog(
                         .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.LocalGasStation,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.ic_ahorragas_logo),
+                        contentDescription = "AhorraGAS Logo",
+                        modifier = Modifier.size(36.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "¡Bienvenido a GAS GAS!",
+                    text = "¡Bienvenido a AhorraGAS!",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black
                 )

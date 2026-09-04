@@ -28,9 +28,11 @@ class MainActivity : ComponentActivity() {
                 AppThemeMode.SYSTEM -> isSystemInDarkTheme()
                 AppThemeMode.LIGHT -> false
                 AppThemeMode.DARK -> true
+                AppThemeMode.AMOLED -> true
             }
+            val isAmoled = userSettings.themeMode == AppThemeMode.AMOLED
 
-            GasolinaHoyTheme(darkTheme = isDark) {
+            GasolinaHoyTheme(darkTheme = isDark, isAmoled = isAmoled) {
                 MainAppScaffold(viewModel = viewModel)
             }
         }
