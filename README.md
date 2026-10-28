@@ -45,20 +45,6 @@ AhorraGAS respeta la privacidad de los usuarios:
 
 Consulta el documento completo en [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
 
-## 🚀 Compilación y Firma de Producción
-
-Para compilar el proyecto en local o en un entorno de integración continua (CI/CD):
-
-```bash
-# Compilar paquete de depuración (Debug APK)
-gradle assembleDebug
-
-# Generar Android App Bundle para Google Play (AAB)
-STORE_PASSWORD="tu_password" KEY_PASSWORD="tu_password" gradle :app:bundleRelease
-```
-
-Las claves de firma (`*.keystore`, `*.jks`) y archivos de credenciales están protegidos y excluidos del repositorio mediante `.gitignore`.
-
 ---
 
 <div align="center">
