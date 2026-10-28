@@ -290,6 +290,18 @@ class MainViewModel(
         }
     }
 
+    fun testMitecoApiQuery() {
+        viewModelScope.launch {
+            try {
+                val provId = userSettings.value.selectedProvinceId
+                gasStationRepo.getStationsForProvince(provId, forceRefresh = true)
+                _notificationMessage.emit("Consulta de prueba a la API MITECO completada.")
+            } catch (e: Exception) {
+                _notificationMessage.emit("Error en prueba API: ${e.message}")
+            }
+        }
+    }
+
     fun selectIslandFilter(islandId: String?) {
         prefsRepo.setIsland(islandId)
         _stationsState.update { it.copy(filterIsland = islandId) }

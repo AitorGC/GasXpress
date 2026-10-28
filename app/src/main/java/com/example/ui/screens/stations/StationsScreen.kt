@@ -45,6 +45,8 @@ import java.util.Locale
 fun StationsScreen(
     viewModel: MainViewModel,
     onNavigateToAddExpenseWithStation: (GasStation) -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onOpenStatsModal: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val userSettings by viewModel.userSettings.collectAsStateWithLifecycle()
@@ -86,7 +88,9 @@ fun StationsScreen(
             StationsListView(
                 viewModel = viewModel,
                 listState = listState,
-                onSelectStation = { viewModel.selectStationForDetail(it) }
+                onSelectStation = { viewModel.selectStationForDetail(it) },
+                onNavigateToSettings = onNavigateToSettings,
+                onOpenStatsModal = onOpenStatsModal
             )
         } else {
             StationDetailView(
@@ -106,6 +110,8 @@ fun StationsScreen(
 fun StationsListView(
     viewModel: MainViewModel,
     onSelectStation: (GasStation) -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onOpenStatsModal: () -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState()
 ) {
@@ -119,7 +125,6 @@ fun StationsListView(
     }
 
     var showProvinceSelector by remember { mutableStateOf(false) }
-    var showSettingsSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -135,9 +140,16 @@ fun StationsListView(
                             modifier = Modifier
                                 .size(36.dp)
                                 .padding(end = 8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onOpenStatsModal() }
                         )
                         Column(verticalArrangement = Arrangement.Center) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .clickable { onOpenStatsModal() }
+                            ) {
                                 Text(
                                     text = "Ahorra",
                                     style = MaterialTheme.typography.titleLarge,
@@ -155,7 +167,7 @@ fun StationsListView(
                             }
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.clickable { showSettingsSheet = true }
+                                modifier = Modifier.clickable { showProvinceSelector = true }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.LocationOn,
@@ -179,7 +191,7 @@ fun StationsListView(
                 windowInsets = WindowInsets(0.dp),
                 actions = {
                     IconButton(
-                        onClick = { showSettingsSheet = true }
+                        onClick = onNavigateToSettings
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
@@ -644,17 +656,6 @@ fun StationsListView(
             onDismiss = { showProvinceSelector = false }
         )
     }
-
-    if (showSettingsSheet) {
-        com.example.ui.screens.settings.SettingsSheet(
-            viewModel = viewModel,
-            onOpenLocationPicker = { 
-                showSettingsSheet = false
-                showProvinceSelector = true 
-            },
-            onDismiss = { showSettingsSheet = false }
-        )
-    }
 }
 
 @Composable
@@ -890,7 +891,7 @@ fun AppSplashScreen(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "AhorraGAS v1.1.5 • Datos Oficiales MITECO",
+                    text = "AhorraGAS v1.1.6 • Datos Oficiales MITECO",
                     fontSize = 10.sp,
                     color = Color(0xFF94A3B8),
                     textAlign = TextAlign.Center

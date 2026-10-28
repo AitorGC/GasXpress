@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import com.example.data.model.Province
 import com.example.data.model.SpanishIsland
 import com.example.data.model.SpanishProvinces
+import com.example.data.network.ApiStatsTracker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -146,6 +147,13 @@ object LocationHelper {
                                 municipality = locality,
                                 provinceId = prov.id
                             )
+                            ApiStatsTracker.recordGpsLocation(
+                                location = location,
+                                address = addr,
+                                resolvedProvince = prov,
+                                resolvedIsland = island,
+                                wasGeocoderSuccess = true
+                            )
                             return@withContext Pair(prov, island)
                         }
                     }
@@ -159,9 +167,27 @@ object LocationHelper {
                                 municipality = locality,
                                 provinceId = prov.id
                             )
+                            ApiStatsTracker.recordGpsLocation(
+                                location = location,
+                                address = addr,
+                                resolvedProvince = prov,
+                                resolvedIsland = island,
+                                wasGeocoderSuccess = true
+                            )
                             return@withContext Pair(prov, island)
                         }
                     }
+
+                    // If province name didn't match directly, still record the address
+                    val (fallbackProv, fallbackIsland) = SpanishProvinces.findNearestProvinceAndIsland(lat, lng)
+                    ApiStatsTracker.recordGpsLocation(
+                        location = location,
+                        address = addr,
+                        resolvedProvince = fallbackProv,
+                        resolvedIsland = fallbackIsland,
+                        wasGeocoderSuccess = true
+                    )
+                    return@withContext Pair(fallbackProv, fallbackIsland)
                 }
             }
         } catch (_: Exception) {
@@ -169,6 +195,14 @@ object LocationHelper {
         }
 
         // 2. Fallback to geometric coordinate matching
-        SpanishProvinces.findNearestProvinceAndIsland(lat, lng)
+        val fallbackResult = SpanishProvinces.findNearestProvinceAndIsland(lat, lng)
+        ApiStatsTracker.recordGpsLocation(
+            location = location,
+            address = null,
+            resolvedProvince = fallbackResult.first,
+            resolvedIsland = fallbackResult.second,
+            wasGeocoderSuccess = false
+        )
+        fallbackResult
     }
 }

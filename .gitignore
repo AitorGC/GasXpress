@@ -1,23 +1,49 @@
+# Gradle and build outputs
 *.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.gradle/
+/build/
+app/build/
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Android Studio and IDE configs
+/.idea/
 local.properties
-.env
-debug.keystore
-debug.keystore.base64
+.DS_Store
+
+# Android Package and Bundle outputs (evitar binarios pesados en git)
+*.aab
+*.apk
+*.apks
+*.zip
+ahorragas-release.aab
+keystore_pack.zip
+
+# Claves de firma y certificados (CRÍTICO: protegidos de GitHub)
 *.keystore
 *.jks
-google-services.json
+*.p12
+*.pem
+*.pk8
+*.base64
+*_base64.txt
+debug.keystore
+debug.keystore.base64
+my-upload-key.jks
+release.keystore
+keystore/
+
+# Secretos y credenciales de entorno
+.env
+.env.local
 secrets.properties
+google-services.json
+
+# Scripts temporales de migración
+rewrite_scaffold.py
+fix_collect_as_state.py
+get_new_logos.py
+download_logos.py
+make_pngs.py

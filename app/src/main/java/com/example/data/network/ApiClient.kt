@@ -22,6 +22,7 @@ object ApiClient {
     
     fun initialize(context: Context) {
         applicationContext = context.applicationContext
+        ApiStatsTracker.syncPolicyFromPrefs(context)
     }
 
     private val moshi: Moshi by lazy {
@@ -67,17 +68,43 @@ object ApiClient {
             shouldFetchNetwork = true
         }
         
+        val startTime = System.currentTimeMillis()
         val request = if (shouldFetchNetwork) {
             chain.request().newBuilder().cacheControl(CacheControl.FORCE_NETWORK).build()
         } else {
             chain.request().newBuilder().cacheControl(CacheControl.FORCE_CACHE).build()
         }
         
+        val endpoint = request.url.encodedPath.substringAfter("PreciosCarburantes/")
+        
         val response = try {
-            chain.proceed(request)
+            val res = chain.proceed(request)
+            val latency = System.currentTimeMillis() - startTime
+            val isFromNetwork = res.networkResponse != null
+            val isFromCache = res.cacheResponse != null
+            
+            ApiStatsTracker.recordMitecoRequest(
+                endpoint = if (endpoint.isBlank()) request.url.encodedPath else endpoint,
+                isNetwork = isFromNetwork,
+                isCache = isFromCache || !shouldFetchNetwork,
+                statusCode = res.code,
+                latencyMs = latency,
+                isSuccess = res.isSuccessful,
+                context = context
+            )
+            res
         } catch (e: Exception) {
-            // If FORCE_CACHE fails (no cache), and we really need data, we might want to fallback to network?
-            // Wait, if it fails, it throws an exception. We'll just let it throw and fallback to mock data in Repo.
+            val latency = System.currentTimeMillis() - startTime
+            ApiStatsTracker.recordMitecoRequest(
+                endpoint = if (endpoint.isBlank()) request.url.encodedPath else endpoint,
+                isNetwork = shouldFetchNetwork,
+                isCache = !shouldFetchNetwork,
+                statusCode = 0,
+                latencyMs = latency,
+                isSuccess = false,
+                errorMessage = e.message ?: "Error de red",
+                context = context
+            )
             throw e
         }
         

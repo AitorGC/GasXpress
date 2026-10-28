@@ -32,10 +32,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.data.model.GasStation
 import com.example.ui.MainViewModel
+import com.example.ui.components.ApiStatsAndLocationDialog
 import com.example.ui.screens.calculator.TripCalculatorScreen
 import com.example.ui.screens.expenses.ExpensesScreen
 import com.example.ui.screens.onboarding.InitialProvinceOnboardingDialog
 import com.example.ui.screens.reports.ReportsAndStatsScreen
+import com.example.ui.screens.settings.SettingsScreen
 import com.example.ui.screens.stations.StationsScreen
 import com.example.ui.screens.vehicles.VehiclesAndDriversScreen
 import kotlinx.coroutines.flow.collectLatest
@@ -59,6 +61,7 @@ fun MainAppScaffold(viewModel: MainViewModel) {
     val context = LocalContext.current
 
     var prefilledStationForExpense by remember { mutableStateOf<GasStation?>(null) }
+    var showApiStatsModal by remember { mutableStateOf(false) }
 
     // Request notification permission on Android 13+
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -237,7 +240,20 @@ fun MainAppScaffold(viewModel: MainViewModel) {
                         onNavigateToAddExpenseWithStation = { station ->
                             prefilledStationForExpense = station
                             navController.navigate(Screen.Expenses.route)
+                        },
+                        onNavigateToSettings = {
+                            navController.navigate("settings")
+                        },
+                        onOpenStatsModal = {
+                            showApiStatsModal = true
                         }
+                    )
+                }
+
+                composable("settings") {
+                    SettingsScreen(
+                        viewModel = viewModel,
+                        onBack = { navController.popBackStack() }
                     )
                 }
 
@@ -273,6 +289,14 @@ fun MainAppScaffold(viewModel: MainViewModel) {
                 viewModel.setProvince(provinceId, islandId)
                 viewModel.completeOnboarding()
             }
+        )
+    }
+
+    // Modal dialog showing API query statistics and GPS extracted location
+    if (showApiStatsModal) {
+        ApiStatsAndLocationDialog(
+            viewModel = viewModel,
+            onDismiss = { showApiStatsModal = false }
         )
     }
 }

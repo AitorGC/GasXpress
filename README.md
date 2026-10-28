@@ -34,6 +34,30 @@ Este proyecto está construido empleando el ecosistema más moderno del desarrol
 - **Arquitectura:** **MVVM** (Model-View-ViewModel) para separar de forma limpia la lógica de negocio de la interfaz.
 - **Programación Reactiva:** Coroutines y Flow.
 - **Persistencia de Datos:** **Room Database** para un almacenamiento local ultrarrápido y disponibilidad sin conexión (*offline-first*).
+- **Fuente Oficial de Datos:** Datos abiertos oficiales del Ministerio para la Transición Ecológica y el Reto Demográfico (MITECO).
+
+## 🔒 Privacidad y Seguridad
+
+AhorraGAS respeta la privacidad de los usuarios:
+- No incluye anuncios ni herramientas de rastreo publicitario de terceros.
+- Las consultas de precios son anónimas y la ubicación GPS se procesa en el dispositivo únicamente en primer plano.
+- Todos los datos de vehículos y repostajes se almacenan de forma local.
+
+Consulta el documento completo en [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
+
+## 🚀 Compilación y Firma de Producción
+
+Para compilar el proyecto en local o en un entorno de integración continua (CI/CD):
+
+```bash
+# Compilar paquete de depuración (Debug APK)
+gradle assembleDebug
+
+# Generar Android App Bundle para Google Play (AAB)
+STORE_PASSWORD="tu_password" KEY_PASSWORD="tu_password" gradle :app:bundleRelease
+```
+
+Las claves de firma (`*.keystore`, `*.jks`) y archivos de credenciales están protegidos y excluidos del repositorio mediante `.gitignore`.
 
 ---
 

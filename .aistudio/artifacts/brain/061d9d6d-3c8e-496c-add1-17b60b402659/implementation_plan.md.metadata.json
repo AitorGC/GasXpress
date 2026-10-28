@@ -1,0 +1,6 @@
+{
+  "summary":  "Plan integral para preparar AhorraGAS para su publicación en Google Play Console: configuración del package name com.aitorgc.ahorragas, generación de la clave de producción release.keystore / my-upload-key.jks, compilación del paquete AAB firmado para producción, redacción de la Política de Privacidad (PRIVACY_POLICY.md) y visor en la aplicación con enlace a GitHub, y preparación higiénica del repositorio para GitHub sin exponer secretos.",
+  "updatedAt":  "2026-10-26T14:25:07.650963492Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

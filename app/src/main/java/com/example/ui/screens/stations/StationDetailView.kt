@@ -11,17 +11,21 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.FuelType
@@ -378,7 +382,7 @@ fun StationDetailView(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Precios Actuales (MITECO)",
+                        text = "Precios Actuales",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -491,7 +495,359 @@ fun StationDetailView(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            // 5. Fuel Cost & Liters Calculator (Calculadora de Repostaje)
+            StationFuelCalculator(
+                station = station,
+                currentFuelType = currentFuelType,
+                onAddExpense = onAddExpense
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StationFuelCalculator(
+    station: GasStation,
+    currentFuelType: FuelType,
+    onAddExpense: (GasStation) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val availableFuels = remember(station) {
+        val list = FuelType.entries.filter { station.getPriceFor(it) != null }
+        if (list.isEmpty()) listOf(currentFuelType) else list
+    }
+
+    var selectedFuel by remember(station, currentFuelType) {
+        mutableStateOf(
+            if (station.getPriceFor(currentFuelType) != null) currentFuelType
+            else availableFuels.firstOrNull() ?: currentFuelType
+        )
+    }
+
+    val pricePerLiter = station.getPriceFor(selectedFuel) ?: selectedFuel.defaultAvgPrice
+
+    // Mode: 0 = By Euros (Amount), 1 = By Liters
+    var calculationMode by remember { mutableIntStateOf(0) }
+
+    var amountEurInput by remember { mutableStateOf("50") }
+    var litersInput by remember { mutableStateOf("") }
+
+    val calculatedLiters: Double = remember(amountEurInput, pricePerLiter) {
+        val eur = amountEurInput.replace(",", ".").toDoubleOrNull() ?: 0.0
+        if (pricePerLiter > 0.0) eur / pricePerLiter else 0.0
+    }
+
+    val calculatedEuros: Double = remember(litersInput, pricePerLiter) {
+        val lit = litersInput.replace(",", ".").toDoubleOrNull() ?: 0.0
+        lit * pricePerLiter
+    }
+
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Calculate,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column {
+                        Text(
+                            text = "Calculadora de Repostaje",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Calcula el importe o los litros exactos",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Fuel Selector Chip Row (extracting price from this station)
+            Text(
+                text = "COMBUSTIBLE SELECCIONADO",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                letterSpacing = 0.5.sp
+            )
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(availableFuels) { fuel ->
+                    val p = station.getPriceFor(fuel)
+                    val isSelected = fuel == selectedFuel
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedFuel = fuel },
+                        label = {
+                            Text(
+                                text = "${fuel.shortName}: ${if (p != null) String.format(Locale.getDefault(), "%.3f €/L", p) else "N/D"}",
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            }
+
+            // Price banner extracted from card
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Precio por litro aplicado:",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = String.format(Locale.getDefault(), "%.3f €/L", pricePerLiter),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            // Mode Selector Tabs (Euros vs Liters)
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(
+                    selected = calculationMode == 0,
+                    onClick = { calculationMode = 0 },
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
+                ) {
+                    Text("Por Importe (€)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+                SegmentedButton(
+                    selected = calculationMode == 1,
+                    onClick = {
+                        calculationMode = 1
+                        if (litersInput.isBlank()) {
+                            litersInput = String.format(Locale.US, "%.1f", calculatedLiters.coerceAtLeast(10.0))
+                        }
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
+                ) {
+                    Text("Por Litros (L)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            if (calculationMode == 0) {
+                // MODE: User inputs EUROS -> Calculates LITERS
+                OutlinedTextField(
+                    value = amountEurInput,
+                    onValueChange = { amountEurInput = it },
+                    label = { Text("Importe a repostar (€)") },
+                    placeholder = { Text("Ej. 50") },
+                    trailingIcon = {
+                        Text("€", fontWeight = FontWeight.Bold, modifier = Modifier.padding(end = 12.dp))
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Quick preset chips in Euros
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf("10", "20", "30", "50", "70").forEach { preset ->
+                        FilledTonalButton(
+                            onClick = { amountEurInput = preset },
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(34.dp)
+                        ) {
+                            Text("$preset€", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Result Box (Liters)
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "LITROS A REPOSTAR",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 0.6.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = String.format(Locale.getDefault(), "%.2f L", calculatedLiters),
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Con ${amountEurInput.ifBlank { "0" }} € obtienes ${String.format(Locale.getDefault(), "%.2f", calculatedLiters)} litros de combustible",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                        val estimatedKm = (calculatedLiters / 6.0) * 100
+                        Text(
+                            text = "🚗 Autonomía estimada: ~${estimatedKm.toInt()} km (consumo medio 6 L/100km)",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+            } else {
+                // MODE: User inputs LITERS -> Calculates EUROS
+                OutlinedTextField(
+                    value = litersInput,
+                    onValueChange = { litersInput = it },
+                    label = { Text("Litros a repostar (L)") },
+                    placeholder = { Text("Ej. 40") },
+                    trailingIcon = {
+                        Text("L", fontWeight = FontWeight.Bold, modifier = Modifier.padding(end = 12.dp))
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Quick preset chips in Liters
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf("10", "20", "30", "40", "50", "60").forEach { preset ->
+                        FilledTonalButton(
+                            onClick = { litersInput = preset },
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(34.dp)
+                        ) {
+                            Text("${preset}L", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                // Result Box (Euros)
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "TOTAL DEL PAGO",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            letterSpacing = 0.6.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = String.format(Locale.getDefault(), "%.2f €", calculatedEuros),
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${litersInput.ifBlank { "0" }} L × ${String.format(Locale.getDefault(), "%.3f", pricePerLiter)} €/L = ${String.format(Locale.getDefault(), "%.2f €", calculatedEuros)}",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+            }
+
+            // Button to take this to expense tracker
+            FilledTonalButton(
+                onClick = { onAddExpense(station) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ReceiptLong,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Anotar este repostaje en Gastos", fontWeight = FontWeight.Bold)
+            }
         }
     }
 }

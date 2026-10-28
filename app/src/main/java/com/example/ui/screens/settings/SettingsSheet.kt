@@ -520,7 +520,7 @@ fun SettingsSheet(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "AhorraGAS v1.1.5",
+                            text = "AhorraGAS v1.1.6",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
